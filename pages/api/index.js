@@ -1,13 +1,11 @@
-// app/page.js  (use .tsx if your file is .tsx but this JS version works)
-'use client';
-
-import React, { useEffect, useRef, useState } from 'react';
+// pages/index.js
+import React, { useEffect, useState, useRef } from 'react';
 import { fetchTopHeadlines } from '../utils/fetchNews';
 import NewsCard from '../components/NewsCard';
 
 const INDIAN_STATES = ['All India','Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Delhi'];
 
-export default function HomePage() {
+export default function Home() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stateFilter, setStateFilter] = useState('All India');
