@@ -1,4 +1,4 @@
-// app/page.js  (use .tsx if your file is .tsx but this JS version works)
+// app/page.js
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -11,6 +11,8 @@ export default function HomePage() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stateFilter, setStateFilter] = useState('All India');
+
+  // use a permissive ref type so Node/TS builds don't complain
   const intervalRef = useRef(null);
 
   async function loadNews() {
@@ -27,9 +29,18 @@ export default function HomePage() {
   }
 
   useEffect(() => {
+    // initial load
     loadNews();
+
+    // schedule hourly refresh (stores interval id/object in ref)
     intervalRef.current = setInterval(loadNews, 60 * 60 * 1000); // 1 hour
-    return () => clearInterval(intervalRef.current);
+
+    // cleanup safely
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, []);
 
   const filtered = articles.filter(a => {
