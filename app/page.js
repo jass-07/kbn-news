@@ -6,7 +6,7 @@ import { fetchTopHeadlines } from '../utils/fetchNews';
 import NewsCard from '../components/NewsCard';
 
 const INDIAN_STATES = [
-  'All India','Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana',
+  'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana',
   'Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya',
   'Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura',
   'Uttar Pradesh','Uttarakhand','West Bengal','Delhi'
@@ -49,23 +49,31 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   const [scope, setScope] = useState('national'); // 'national' | 'international' | 'state'
-  const [stateFilter, setStateFilter] = useState('All India');
+  const [stateFilter, setStateFilter] = useState(''); // empty => show placeholder "Select a state"
   const [category, setCategory] = useState('');
   const intervalRef = useRef(null);
 
   async function loadNews() {
     try {
       setLoading(true);
+
+      // If user selected "State" scope but hasn't chosen a state, don't fetch
+      if (scope === 'state' && !stateFilter) {
+        setArticles([]);
+        setLoading(false);
+        return;
+      }
+
       let mode = scope;
       let q = '';
       let country = '';
 
       if (mode === 'national') country = 'in';
       if (mode === 'state') {
-        q = stateFilter === 'All India' ? '' : (STATE_QUERIES[stateFilter] || stateFilter);
+        q = STATE_QUERIES[stateFilter] || stateFilter;
         country = 'in';
       }
-      // international: mode='international' (proxy uses everything)
+      // international: proxy uses everything
 
       const data = await fetchTopHeadlines({ mode, country, q, category });
       setArticles(data);
@@ -86,6 +94,12 @@ export default function HomePage() {
 
   useEffect(() => { loadNews(); }, [scope, stateFilter, category]);
 
+  // ensure when user switches to state scope, stateFilter becomes '' (so placeholder appears)
+  useEffect(() => {
+    if (scope === 'state') setStateFilter('');
+    // we intentionally do not set a default state to force the user to choose
+  }, [scope]);
+
   const containerStyle = {
     background: '#ffffff',
     minHeight: '100vh',
@@ -99,12 +113,19 @@ export default function HomePage() {
 
   const mainStyle = { width: '100%', maxWidth: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center' };
   const labelStyle = { color: '#0b1220', fontWeight: 600, marginRight: 6 };
-  const selectStyle = { padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0' };
+  const selectStyle = { padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', color: '#0b1220' };
 
   return (
     <div style={containerStyle}>
       <header style={{ width: '100%', maxWidth: 1000, textAlign: 'center', marginBottom: 20 }}>
-        <h1 style={{ fontSize: 64, margin: '16px 0', letterSpacing: 1.5, color: '#c71717' }}>KBN NEWS</h1>
+        <h1
+          className="site-title"
+          style={{
+            fontFamily: 'var(--font-montserrat), Montserrat, sans-serif',
+          }}
+        >
+          KBN NEWS
+        </h1>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
@@ -120,6 +141,7 @@ export default function HomePage() {
             <div>
               <label style={labelStyle}>State:</label>
               <select style={selectStyle} value={stateFilter} onChange={e => setStateFilter(e.target.value)}>
+                <option value='' disabled>Select a state</option>
                 {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
@@ -145,6 +167,10 @@ export default function HomePage() {
       </header>
 
       <main style={mainStyle}>
+        {scope === 'state' && !stateFilter && (
+          <div style={{ padding: 14, color: '#334155' }}>Please select a state to view state-specific news.</div>
+        )}
+
         {loading && (
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
             <div style={{ width: '90%', height: 220, background: '#f8fafb', borderRadius: 8 }} />
